@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🏆 FC Tournament Manager – 6 Players, 2 Legs</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        body {
+            background: #0b1a2e;
+            color: #e0e7f0;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #ffd966;
+            border-bottom: 2px solid #2a4a6a;
+            padding-bottom: 6px;
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .col {
+            flex: 1 1 400px;
+            background: #132c42;
+            padding: 18px 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: #1a3450;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th {
+            background: #1f4468;
+            color: #ffd966;
+            padding: 10px 6px;
+            font-weight: 600;
+            text-align: center;
+            border: 1px solid #2a5a7a;
+        }
+        td {
+            padding: 8px 6px;
+            text-align: center;
+            border: 1px solid #2a5a7a;
+            background: #1e3a58;
+        }
+        input[type="number"] {
+            width: 52px;
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid #4a8ab5;
+            background: #0f293f;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        input[type="number"]:focus {
+            outline: 2px solid #ffb347;
+            background: #1a3f5a;
+        }
+        .btn {
+            background: #ffb347;
+            color: #0b1a2e;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            margin: 4px 2px;
+        }
+        .btn:hover {
+            background: #ffa01a;
+            transform: scale(1.02);
+        }
+        .btn-danger {
+            background: #c74a4a;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #b33a3a;
+        }
+        .rank-badge {
+            display: inline-block;
+            background: #ffb347;
+            color: #0b1a2e;
+            font-weight: 800;
+            border-radius: 40px;
+            padding: 0 10px;
+            font-size: 13px;
+            min-width: 28px;
+        }
+        .gold { background: #f9c74f; }
+        .silver { background: #c0cbd6; color: #111; }
+        .bronze { background: #cd7f4b; }
+        .fixture-status {
+            font-size: 12px;
+            color: #9bb7d4;
+            margin-left: 4px;
+        }
+        .scroll-table {
+            max-height: 460px;
+            overflow-y: auto;
+            display: block;
+        }
+        .scroll-table table {
+            width: 100%;
+        }
+        .footer-actions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .summary-box {
+            background: #0d2236;
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin: 8px 0;
+            border-left: 6px solid #ffb347;
+        }
+        @media (max-width: 700px) {
+            input[type="number"] { width: 42px; }
+            td, th { font-size: 12px; padding: 4px 2px; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>⚽ FC TOURNAMENT · 6 Players · 2 Legs</h1>
+<div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+    <span style="background:#1f4468; padding:6px 16px; border-radius:30px;">👥 Mugdho · Rafat · Bubun · Hazik · Araf · Nafis</span>
+    <span style="background:#1f4468; padding:6px 16px; border-radius:30px;">📅 10 Rounds · 30 Matches</span>
+    <span style="background:#1f4468; padding:6px 16px; border-radius:30px;">🏅 Win=3 · Draw=1</span>
+</div>
+
+<div class="flex-row">
+
+    <!-- ============ LEFT COLUMN: FIXTURES ============= -->
+    <div class="col" style="flex: 2;">
+        <h2>📋 Fixtures <span style="font-size:14px; font-weight:normal; color:#9bb7d4;">(enter scores below)</span></h2>
+        <div class="scroll-table" id="fixtureContainer">
+            <table id="fixtureTable">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Leg</th><th>Round</th><th>Player 1</th><th>Score</th><th>Player 2</th>
+                    </tr>
+                </thead>
+                <tbody id="fixtureBody">
+                    <!-- generated by JS -->
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" onclick="recalcAll()">🔄 Update Points</button>
+            <button class="btn btn-danger" onclick="resetAllScores()">🗑️ Clear All Scores</button>
+        </div>
+        <div class="summary-box" style="margin-top:12px;">
+            ⚡ <strong>Tip:</strong> Type scores in the input fields, then click <strong>"Update Points"</strong> to refresh the table.
+        </div>
+    </div>
+
+    <!-- ============ RIGHT COLUMN: POINTS TABLE ============= -->
+    <div class="col" style="flex: 1.2;">
+        <h2>🏆 Points Table</h2>
+        <div style="overflow-x:auto;">
+            <table id="pointsTable">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th>
+                        <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="pointsBody">
+                    <!-- generated by JS -->
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:10px; font-size:13px; color:#9bb7d4;">
+            ⭐ Ranked by: Points → GD → GF → Head‑to‑Head (manual)
+        </div>
+    </div>
+</div>
+
+<!-- ============ BOTTOM: HEAD-TO-HEAD ============= -->
+<div class="col" style="margin-top:20px;">
+    <h3>🔁 Head‑to‑Head (all pairs) <span style="font-size:13px; font-weight:normal; color:#9bb7d4;">— for tie‑breakers</span></h3>
+    <div style="overflow-x:auto;">
+        <table id="h2hTable">
+            <thead>
+                <tr><th>Player 1</th><th>Leg 1</th><th>Leg 2</th><th>Player 2</th><th>Aggregate</th></tr>
+            </thead>
+            <tbody id="h2hBody">
+                <!-- generated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="footer-actions">
+    <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn" onclick="location.reload();" style="background:#4a7a9a; color:#fff;">🔄 Reset App</button>
+</div>
+
+<script>
+    // -------- PLAYERS & FIXTURES (2-leg, balanced) --------
+    const PLAYERS = ['Mugdho', 'Rafat', 'Bubun', 'Hazik', 'Araf', 'Nafis'];
+    
+    // Generate 30 fixtures (Leg1: 1-15, Leg2: 16-30)
+    function buildFixtures() {
+        const fixtures = [];
+        // Round-robin pairings for 6 players (5 rounds per leg)
+        const pairsLeg1 = [
+            // Round 1
+            [[0,1],[2,3],[4,5]],
+            // Round 2
+            [[0,2],[1,4],[3,5]],
+            // Round 3
+            [[0,3],[1,5],[2,4]],
+            // Round 4
+            [[0,4],[1,3],[2,5]],
+            // Round 5
+            [[0,5],[1,2],[3,4]]
+        ];
+        // Leg 2 is reverse of Leg 1 (swap each pair)
+        const pairsLeg2 = pairsLeg1.map(round => 
+            round.map(pair => [pair[1], pair[0]])
+        );
+        
+        let matchId = 1;
+        // Leg 1
+        pairsLeg1.forEach((round, rIdx) => {
+            round.forEach(pair => {
+                fixtures.push({
+                    id: matchId++,
+                    leg: 'Leg 1',
+                    round: `Round ${rIdx+1}`,
+                    p1: PLAYERS[pair[0]],
+                    p2: PLAYERS[pair[1]],
+                    g1: null,
+                    g2: null
+                });
+            });
+        });
+        // Leg 2
+        pairsLeg2.forEach((round, rIdx) => {
+            round.forEach(pair => {
+                fixtures.push({
+                    id: matchId++,
+                    leg: 'Leg 2',
+                    round: `Round ${rIdx+6}`,
+                    p1: PLAYERS[pair[0]],
+                    p2: PLAYERS[pair[1]],
+                    g1: null,
+                    g2: null
+                });
+            });
+        });
+        return fixtures;
+    }
+
+    let fixtures = buildFixtures();
+
+    // ---------- RENDER FIXTURES ----------
+    function renderFixtures() {
+        const tbody = document.getElementById('fixtureBody');
+        tbody.innerHTML = '';
+        fixtures.forEach((f, idx) => {
+            const tr = document.createElement('tr');
+            const g1Val = (f.g1 !== null && f.g1 !== undefined) ? f.g1 : '';
+            const g2Val = (f.g2 !== null && f.g2 !== undefined) ? f.g2 : '';
+            tr.innerHTML = `
+                <td>${f.id}</td>
+                <td>${f.leg}</td>
+                <td>${f.round}</td>
+                <td style="text-align:right; font-weight:500;">${f.p1}</td>
+                <td style="display:flex; gap:4px; justify-content:center; align-items:center; flex-wrap:wrap;">
+                    <input type="number" min="0" max="99" class="score1" data-idx="${idx}" value="${g1Val}" placeholder="0" style="width:44px;">
+                    <span style="color:#ffb347;">:</span>
+                    <input type="number" min="0" max="99" class="score2" data-idx="${idx}" value="${g2Val}" placeholder="0" style="width:44px;">
+                </td>
+                <td style="text-align:left; font-weight:500;">${f.p2}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Attach input events to auto-save scores
+        document.querySelectorAll('.score1').forEach(inp => {
+            inp.addEventListener('change', function() {
+                const idx = parseInt(this.dataset.idx);
+                const val = parseInt(this.value);
+                fixtures[idx].g1 = isNaN(val) ? null : val;
+                // auto-update points on change (optional)
+            });
+        });
+        document.querySelectorAll('.score2').forEach(inp => {
+            inp.addEventListener('change', function() {
+                const idx = parseInt(this.dataset.idx);
+                const val = parseInt(this.value);
+                fixtures[idx].g2 = isNaN(val) ? null : val;
+            });
+        });
+    }
+
+    // ---------- READ SCORES FROM INPUTS ----------
+    function syncScoresFromInputs() {
+        document.querySelectorAll('.score1').forEach(inp => {
+            const idx = parseInt(inp.dataset.idx);
+            const val = parseInt(inp.value);
+            fixtures[idx].g1 = isNaN(val) ? null : val;
+        });
+        document.querySelectorAll('.score2').forEach(inp => {
+            const idx = parseInt(inp.dataset.idx);
+            const val = parseInt(inp.value);
+            fixtures[idx].g2 = isNaN(val) ? null : val;
+        });
+    }
+
+    // ---------- CALCULATE POINTS ----------
+    function calcPoints() {
+        syncScoresFromInputs();
+        const stats = {};
+        PLAYERS.forEach(p => {
+            stats[p] = { played:0, wins:0, draws:0, losses:0, gf:0, ga:0, gd:0, pts:0 };
+        });
+
+        fixtures.forEach(f => {
+            if (f.g1 === null || f.g2 === null) return;
+            const g1 = parseInt(f.g1);
+            const g2 = parseInt(f.g2);
+            if (isNaN(g1) || isNaN(g2)) return;
+            const p1 = f.p1, p2 = f.p2;
+            stats[p1].played += 1;
+            stats[p2].played += 1;
+            stats[p1].gf += g1;
+            stats[p1].ga += g2;
+            stats[p2].gf += g2;
+            stats[p2].ga += g1;
+            if (g1 > g2) {
+                stats[p1].wins += 1; stats[p1].pts += 3;
+                stats[p2].losses += 1;
+            } else if (g1 < g2) {
+                stats[p2].wins += 1; stats[p2].pts += 3;
+                stats[p1].losses += 1;
+            } else {
+                stats[p1].draws += 1; stats[p1].pts += 1;
+                stats[p2].draws += 1; stats[p2].pts += 1;
+            }
+        });
+
+        // compute GD
+        PLAYERS.forEach(p => {
+            stats[p].gd = stats[p].gf - stats[p].ga;
+        });
+
+        return stats;
+    }
+
+    // ---------- RENDER POINTS TABLE ----------
+    function renderPoints() {
+        const stats = calcPoints();
+        const sorted = PLAYERS.slice().sort((a,b) => {
+            if (stats[a].pts !== stats[b].pts) return stats[b].pts - stats[a].pts;
+            if (stats[a].gd !== stats[b].gd) return stats[b].gd - stats[a].gd;
+            return stats[b].gf - stats[a].gf;
+        });
+
+        const tbody = document.getElementById('pointsBody');
+        tbody.innerHTML = '';
+        sorted.forEach((p, idx) => {
+            const s = stats[p];
+            const rank = idx+1;
+            let badge = '';
+            if (rank === 1) badge = '🥇';
+            else if (rank === 2) badge = '🥈';
+            else if (rank === 3) badge = '🥉';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="rank-badge ${rank===1?'gold':rank===2?'silver':rank===3?'bronze':''}">${rank}</span></td>
+                <td style="font-weight:600; text-align:left; padding-left:8px;">${badge} ${p}</td>
+                <td>${s.played}</td>
+                <td>${s.wins}</td>
+                <td>${s.draws}</td>
+                <td>${s.losses}</td>
+                <td>${s.gf}</td>
+                <td>${s.ga}</td>
+                <td>${s.gd}</td>
+                <td style="font-weight:700; color:#ffd966;">${s.pts}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ---------- RENDER HEAD-TO-HEAD ----------
+    function renderH2H() {
+        const tbody = document.getElementById('h2hBody');
+        tbody.innerHTML = '';
+        // all unique pairs
+        for (let i = 0; i < PLAYERS.length; i++) {
+            for (let j = i+1; j < PLAYERS.length; j++) {
+                const p1 = PLAYERS[i];
+                const p2 = PLAYERS[j];
+                // find leg1 and leg2 matches
+                const m1 = fixtures.find(f => (f.p1===p1 && f.p2===p2) || (f.p1===p2 && f.p2===p1));
+                const m2 = fixtures.find(f => (f.p1===p2 && f.p2===p1) || (f.p1===p1 && f.p2===p2));
+                // actually we need leg1 & leg2 specifically
+                const leg1 = fixtures.find(f => f.leg==='Leg 1' && ((f.p1===p1 && f.p2===p2)||(f.p1===p2 && f.p2===p1)));
+                const leg2 = fixtures.find(f => f.leg==='Leg 2' && ((f.p1===p1 && f.p2===p2)||(f.p1===p2 && f.p2===p1)));
+                const score1 = (leg1 && leg1.g1!==null && leg1.g2!==null) ? `${leg1.g1}-${leg1.g2}` : '–';
+                const score2 = (leg2 && leg2.g1!==null && leg2.g2!==null) ? `${leg2.g1}-${leg2.g2}` : '–';
+                // aggregate: sum goals for each player across both legs
+                let agg = '–';
+                if (leg1 && leg2 && leg1.g1!==null && leg1.g2!==null && leg2.g1!==null && leg2.g2!==null) {
+                    let total1 = 0, total2 = 0;
+                    // determine which side p1 is on in each leg
+                    if (leg1.p1 === p1) { total1 += leg1.g1; total2 += leg1.g2; } 
+                    else { total1 += leg1.g2; total2 += leg1.g1; }
+                    if (leg2.p1 === p1) { total1 += leg2.g1; total2 += leg2.g2; } 
+                    else { total1 += leg2.g2; total2 += leg2.g1; }
+                    agg = `${total1} – ${total2}`;
+                }
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:500;">${p1}</td>
+                    <td>${score1}</td>
+                    <td>${score2}</td>
+                    <td style="font-weight:500;">${p2}</td>
+                    <td style="font-weight:700; color:#ffb347;">${agg}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+    }
+
+    // ---------- RECALC ALL ----------
+    function recalcAll() {
+        syncScoresFromInputs();
+        renderPoints();
+        renderH2H();
+    }
+
+    // ---------- RESET ALL SCORES ----------
+    function resetAllScores() {
+        if (!confirm('Clear all scores? This cannot be undone.')) return;
+        fixtures.forEach(f => { f.g1 = null; f.g2 = null; });
+        renderFixtures();
+        renderPoints();
+        renderH2H();
+    }
+
+    // ---------- EXPORT CSV ----------
+    function exportCSV() {
+        syncScoresFromInputs();
+        let csv = 'Match,Leg,Round,Player1,Goals1,Goals2,Player2\n';
+        fixtures.forEach(f => {
+            const g1 = (f.g1!==null && f.g1!==undefined) ? f.g1 : '';
+            const g2 = (f.g2!==null && f.g2!==undefined) ? f.g2 : '';
+            csv += `${f.id},${f.leg},${f.round},${f.p1},${g1},${g2},${f.p2}\n`;
+        });
+        // add points table summary
+        const stats = calcPoints();
+        csv += '\n\nPlayer,Played,Wins,Draws,Losses,GF,GA,GD,Points\n';
+        PLAYERS.forEach(p => {
+            const s = stats[p];
+            csv += `${p},${s.played},${s.wins},${s.draws},${s.losses},${s.gf},${s.ga},${s.gd},${s.pts}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'FC_Tournament_Data.csv';
+        link.click();
+    }
+
+    // ---------- INIT ----------
+    window.onload = function() {
+        renderFixtures();
+        renderPoints();
+        renderH2H();
+        // auto-recalc on any input change
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('score1') || e.target.classList.contains('score2')) {
+                // debounce
+                clearTimeout(window._recalcTimer);
+                window._recalcTimer = setTimeout(recalcAll, 300);
+            }
+        });
+    };
+
+    // make functions global for inline onclick
+    window.recalcAll = recalcAll;
+    window.resetAllScores = resetAllScores;
+    window.exportCSV = exportCSV;
+
+</script>
+
+</body>
+</html>
